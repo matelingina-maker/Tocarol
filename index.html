@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carol • Chapter XXI</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #07050a;
+      --card-bg: rgba(12, 8, 20, 0.78);
+      --accent-gold: #e2b857;
+      --accent-rose: #f472b6;
+      --accent-purple: #c084fc;
+      --text-main: #f8fafc;
+      --text-muted: #e2e8f0;
+      --font-title: 'Cinzel', serif;
+      --font-serif: 'Cormorant Garamond', serif;
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+      line-height: 1.8;
+      position: relative;
+    }
+
+    /* Fullscreen Dynamic Background Image Overlay */
+    .fullscreen-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 0.8s ease-in-out, filter 0.8s ease-in-out;
+      filter: brightness(0.4) contrast(1.1);
+    }
+
+    .fullscreen-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(7, 5, 10, 0.3) 0%, rgba(7, 5, 10, 0.85) 100%);
+    }
+
+    .container {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    /* Page Navigation Indicator */
+    .progress-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+
+    .step-dot {
+      width: 32px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      transition: all 0.5s ease;
+    }
+
+    .step-dot.active {
+      background: linear-gradient(90deg, var(--accent-rose), var(--accent-purple));
+      box-shadow: 0 0 12px rgba(244, 114, 182, 0.6);
+      width: 45px;
+    }
+
+    .step-dot.completed {
+      background: var(--accent-gold);
+    }
+
+    /* Page View Cards */
+    .page-card {
+      display: none;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      padding: 3.5rem 3rem;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9);
+      animation: fadeInPage 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .page-card.active {
+      display: block;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(20px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Header Styling */
+    .chapter-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-rose);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-title {
+      font-family: var(--font-title);
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--accent-gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+
+    .quote-box {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-style: italic;
+      color: var(--accent-gold);
+      border-left: 3px solid var(--accent-gold);
+      padding-left: 1.2rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .description-text {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.5);
+    }
+
+    /* Task & Question Box */
+    .task-box {
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px dashed rgba(244, 114, 182, 0.4);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-top: 1rem;
+    }
+
+    .task-title {
+      font-family: var(--font-title);
+      font-size: 1rem;
+      color: var(--accent-rose);
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .task-desc {
+      font-size: 1.05rem;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    /* Interactive Quiz Options */
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .option-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      padding: 1rem 1.4rem;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .option-btn:hover {
+      background: rgba(244, 114, 182, 0.2);
+      border-color: var(--accent-rose);
+      transform: translateX(4deg);
+    }
+
+    /* Album Gallery Grid */
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.2rem;
+      margin: 2rem 0;
+    }
+
+    .album-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      aspect-ratio: 4/5;
+    }
+
+    .album-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .album-card:hover img {
+      transform: scale(1.06);
+    }
+
+    .album-caption {
+      position: absolute;
+      bottom: 0;
+      inset-x: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.9));
+      padding: 1rem 0.8rem 0.6rem;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      color: var(--accent-gold);
+      text-align: center;
+    }
+
+    /* Final Letter Card */
+    .letter-card {
+      background: rgba(12, 8, 18, 0.88);
+      border: 1px solid var(--accent-gold);
+      border-radius: 24px;
+      padding: 3.5rem 3rem;
+      box-shadow: 0 0 60px rgba(226, 184, 87, 0.2);
+    }
+
+    .letter-salutation {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      color: var(--accent-gold);
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+    .letter-paragraph {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      color: #f1f5f9;
+      line-height: 2;
+      margin-bottom: 1.8rem;
+    }
+
+    .letter-signature {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      font-style: italic;
+      color: var(--accent-gold);
+      text-align: right;
+      margin-top: 3rem;
+      border-top: 1px solid rgba(226, 184, 87, 0.2);
+      padding-top: 1.5rem;
+    }
+
+    .terminal-box {
+      font-family: var(--font-mono);
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px dashed var(--accent-purple);
+      padding: 2rem;
+      border-radius: 16px;
+      color: var(--accent-rose);
+      margin-bottom: 2rem;
+      min-height: 140px;
+      word-break: break-all;
+    }
+
+    .next-btn {
+      background: linear-gradient(135deg, var(--accent-rose), var(--accent-purple));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 1rem 2.2rem;
+      font-family: var(--font-title);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .next-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2deg);
+      box-shadow: 0 10px 25px rgba(192, 132, 252, 0.4);
+    }
+
+    @media (max-width: 650px) {
+      .page-card, .letter-card {
+        padding: 2rem 1.5rem;
+      }
+      .album-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Dynamic Background Container (Starts with Image 1: WA0037) -->
+  <div class="fullscreen-bg" id="bg-layer" style="background-image: url('IMG-20260923-WA0037.jpg');"></div>
+
+  <div class="container">
+
+    <!-- Progress Dots -->
+    <div class="progress-bar">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+      <div class="step-dot" id="dot-4"></div>
+      <div class="step-dot" id="dot-5"></div>
+      <div class="step-dot" id="dot-6"></div>
+    </div>
+
+    <!-- ================= PAGE 1 ================= -->
+    <section class="page-card active" id="page-1">
+      <span class="chapter-tag">Chapter I • Unfiltered Radiance</span>
+      <h1 class="page-title">The Warmth of Joy</h1>
+
+      <div class="quote-box">
+        "Her laughter carries the quiet strength of unbothered grace."
+      </div>
+
+      <p class="description-text">
+        There is an authentic, effortless beauty in genuine happiness. This capture holds a serene light that brightens everything around it—a gentle reminder of how captivating real joy looks.
+      </p>
+
+      <div class="task-box">
+        <div class="task-title">✨ Deep Reflection Question I</div>
+        <div class="task-desc">What defines Carol’s most captivating quality when she truly smiles?</div>
+        <div class="options-grid">
+          <!-- Button navigates to Page 2, changing background to Image 2: WA0035 -->
+          <button class="option-btn" onclick="nextChapter(1, 2, 'IMG-20260923-WA0035.jpg')">
+            <span>A warmth that instantly lifts everyone’s spirit around her</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(1, 2, 'IMG-20260923-WA0035.jpg')">
+            <span>A quiet, unshakable peace that speaks without words</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(1, 2, 'IMG-20260923-WA0035.jpg')">
+            <span>An effortless brilliance that shines effortlessly</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 2 ================= -->
+    <section class="page-card" id="page-2">
+      <span class="chapter-tag">Chapter II • Artistic Resonance</span>
+      <h1 class="page-title">The Soul of Harmony</h1>
+
+      <div class="quote-box">
+        "Where words fall short, melody speaks what the heart quietly holds."
+      </div>
+
+      <p class="description-text">
+        Artistry is not merely a hobby; it is an expression of character. Held in quiet composure with the guitar, this moment reflects depth, creativity, and the soulful rhythm she carries within.
+      </p>
+
+      <div class="task-box">
+        <div class="task-title">🎸 Deep Reflection Question II</div>
+        <div class="task-desc">How does her creative and musical side best express itself?</div>
+        <div class="options-grid">
+          <!-- Button navigates to Page 3, changing background to Image 3: WA0034 -->
+          <button class="option-btn" onclick="nextChapter(2, 3, 'IMG-20260923-WA0034.jpg')">
+            <span>As a tranquil sanctuary where deep emotions find melody</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(2, 3, 'IMG-20260923-WA0034.jpg')">
+            <span>As an inspiring gift of expression shared with those around her</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(2, 3, 'IMG-20260923-WA0034.jpg')">
+            <span>As a gentle reminder of harmony, passion, and elegance</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 3 ================= -->
+    <section class="page-card" id="page-3">
+      <span class="chapter-tag">Chapter III • Inner Quiet</span>
+      <h1 class="page-title">Peaceful Composure</h1>
+
+      <div class="quote-box">
+        "In a busy world, quiet self-assurance is the ultimate grace."
+      </div>
+
+      <p class="description-text">
+        Immersed in her own sound and space, this portrait captures poise and stillness. It speaks to someone grounded in her own rhythm, unmoved by external distractions.
+      </p>
+
+      <div class="task-box">
+        <div class="task-title">🎧 Deep Reflection Question III</div>
+        <div class="task-desc">What does her quiet composure reveal about her journey forward?</div>
+        <div class="options-grid">
+          <!-- Button navigates to Page 4, changing background to Image 4: WA0036 -->
+          <button class="option-btn" onclick="nextChapter(3, 4, 'IMG-20260923-WA0036.jpg')">
+            <span>She moves forward at her own graceful, unhurried pace</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(3, 4, 'IMG-20260923-WA0036.jpg')">
+            <span>She holds an inner strength that remains peaceful in all storms</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(3, 4, 'IMG-20260923-WA0036.jpg')">
+            <span>She stays true to herself while reaching new heights</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 4 ================= -->
+    <section class="page-card" id="page-4">
+      <span class="chapter-tag">Chapter IV • The Horizon</span>
+      <h1 class="page-title">Unshakable Confidence</h1>
+
+      <div class="quote-box">
+        "Stepping forward with clarity, style, and unyielding purpose."
+      </div>
+
+      <p class="description-text">
+        Sunlight and confidence aligned. This final memory showcases readiness and poise, stepping forward into a future filled with distinction and boundless success.
+      </p>
+
+      <div class="task-box">
+        <div class="task-title">👑 Deep Reflection Question IV</div>
+        <div class="task-desc">What blessing do you wish upon Carol as she steps into Chapter 21?</div>
+        <div class="options-grid">
+          <!-- Navigates to Album Page, keeping the current background or returning to WA0037. Let's use WA0037 as the home base for the album. -->
+          <button class="option-btn" onclick="nextChapter(4, 5, 'IMG-20260923-WA0037.jpg')">
+            <span>Unbounded favor, endless laughter, and divine peace</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(4, 5, 'IMG-20260923-WA0037.jpg')">
+            <span>Wisdom in every decision and greatness in every endeavor</span>
+            <span>→</span>
+          </button>
+          <button class="option-btn" onclick="nextChapter(4, 5, 'IMG-20260923-WA0037.jpg')">
+            <span>All of the above and a year of fulfilling her highest dreams</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 5: ALBUM SECTION ================= -->
+    <section class="page-card" id="page-5">
+      <span class="chapter-tag" style="text-align: center;">Gallery Archive</span>
+      <h1 class="page-title" style="text-align: center;">Moments to Cherish</h1>
+      <p class="description-text" style="text-align: center; margin-bottom: 1.5rem;">
+        Four portraits reflecting joy, music, serenity, and confidence—a celebration of Carol at 21.
+      </p>
+
+      <!-- Using your exact requested filenames and order for the images -->
+      <div class="album-grid">
+        <div class="album-card">
+          <img src="IMG-20260923-WA0037.jpg" alt="Unfiltered Radiance">
+          <div class="album-caption">Unfiltered Radiance</div>
+        </div>
+        <div class="album-card">
+          <img src="IMG-20260923-WA0035.jpg" alt="Artistic Resonance">
+          <div class="album-caption">Artistic Resonance</div>
+        </div>
+        <div class="album-card">
+          <img src="IMG-20260923-WA0034.jpg" alt="Inner Quiet">
+          <div class="album-caption">Inner Quiet</div>
+        </div>
+        <div class="album-card">
+          <img src="IMG-20260923-WA0036.jpg" alt="Unshakable Confidence">
+          <div class="album-caption">Unshakable Confidence</div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 2rem;">
+        <!-- Navigates to Final Letter, setting background to WA0037 and applying blur -->
+        <button class="next-btn" onclick="nextChapter(5, 6, 'IMG-20260923-WA0037.jpg')">
+          Proceed to Cipher Vault 🗝️
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 6: DECRYPTION & BLURRED SMILE LETTER ================= -->
+    <section class="page-card" id="page-6">
+      <span class="chapter-tag" style="text-align: center;">Encrypted Archive • Chapter XXI</span>
+      <h1 class="page-title" style="text-align: center; margin-bottom: 1.5rem;">Deciphering Blessing</h1>
+
+      <div class="terminal-box" id="cipher-box">
+        01001000 01100001 01110000 01110000 01111001 00100000 00110010 00110001 01110011 01110100 00100000 01000011 01100001 01110010 01101111 01101100... [LOCKED CIPHER DATA]
+      </div>
+
+      <div style="text-align: center;" id="decrypt-btn-wrapper">
+        <button class="next-btn" style="padding: 1rem 2.5rem; font-size: 0.95rem;" onclick="runDecryption()">
+          Decrypt Message 🗝️
+        </button>
+      </div>
+
+      <!-- REVEALED FORMATTED LETTER -->
+      <div class="letter-card" id="final-letter" style="display: none;">
+        
+        <div class="letter-salutation">Dearest Carol,</div>
+
+        <p class="letter-paragraph">
+          Stepping into your 21st year is a monumental threshold—a transition into greater wisdom, clearer purpose, and beautiful new horizons. On this extraordinary day, I take a moment to honor the gift of who you are and the distinct light you bring into the world.
+        </p>
+
+        <p class="letter-paragraph">
+          You possess a rare and magnetic combination of gentle warmth, creative soulfulness, and a quiet, unshakable grace. Whether through your joyful smile, your artistic rhythm, or the poise you carry into every room, you inspire everyone blessed enough to know you.
+        </p>
+
+        <p class="letter-paragraph">
+          My deepest wish and prayer for you as you begin this 21st chapter is that Almighty God grants you peace that guards your heart, favor that opens divine doors, and the fulfillment of every silent prayer you hold. May your path be marked by continuous joy, health, and greatness.
+        </p>
+
+        <p class="letter-paragraph" style="font-weight: 600; color: var(--accent-gold);">
+          Happy 21st Birthday, Carol. May this milestone year be your most magnificent chapter yet! 🎂✨
+        </p>
+
+        <div class="letter-signature">
+          With deep admiration & warm wishes,<br>
+          Happy 21st Birthday 👑
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    /* Navigation & Dynamic Background Controller */
+    function nextChapter(current, next, bgImageName) {
+      // Transition card view
+      document.getElementById(`page-${current}`).classList.remove('active');
+      document.getElementById(`page-${next}`).classList.add('active');
+
+      // Update progress dots
+      document.getElementById(`dot-${current}`).classList.remove('active');
+      document.getElementById(`dot-${current}`).classList.add('completed');
+      document.getElementById(`dot-${next}`).classList.add('active');
+
+      // Update full background image
+      const bgLayer = document.getElementById('bg-layer');
+      bgLayer.style.backgroundImage = `url('${bgImageName}')`;
+
+      // Apply blurring effect if transition leads to the final letter (Page 6)
+      if (next === 6) {
+        bgLayer.style.filter = 'brightness(0.35) blur(8px)';
+      } else {
+        bgLayer.style.filter = 'brightness(0.4) contrast(1.1)';
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* Matrix Decryption Effect */
+    function runDecryption() {
+      const cipherBox = document.getElementById('cipher-box');
+      const btnWrapper = document.getElementById('decrypt-btn-wrapper');
+      const finalLetter = document.getElementById('final-letter');
+
+      btnWrapper.style.display = 'none';
+
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#@%&*';
+      let iterations = 0;
+
+      const interval = setInterval(() => {
+        let randomStr = '';
+        for (let i = 0; i < 180; i++) {
+          randomStr += characters.charAt(Math.floor(Math.random() * characters.length));
+          if (i % 18 === 0) randomStr += ' ';
+        }
+        cipherBox.innerText = `[DECRYPTING BLOCKED CIPHER STREAM]:\n` + randomStr;
+
+        iterations++;
+        if (iterations > 22) {
+          clearInterval(interval);
+          cipherBox.style.display = 'none';
+          finalLetter.style.display = 'block';
+
+          // Confetti Celebration
+          confetti({
+            particleCount: 140,
+            spread: 90,
+            origin: { y: 0.6 }
+          });
+        }
+      }, 70);
+    }
+  </script>
+</body>
+</html>
